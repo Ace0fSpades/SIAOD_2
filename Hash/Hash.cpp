@@ -19,7 +19,7 @@ string generate_item()
 }
 
 void generate_file() {
-    ofstream fout("text.txt");
+    ofstream fout("text.bit");
     string line;
     for (int i = 0; i < 100; i++) {
         line = generate_item();
@@ -115,7 +115,7 @@ int Hash_table::hash(string code)
 
 void Hash_table::read_paste()
 {
-    ifstream fin("text.txt");
+    ifstream fin("text.bit");
     int count_lines = 0;
     string line;
     while (!fin.eof()) {
@@ -188,15 +188,13 @@ void Hash_table::find(string code)
 void Hash_table::table_out()
 {
     for (int i = 0; i < 100; i++) {
-        if (table[i]->Next == nullptr)
-            cout << "Hash " << i << " | " << table[i]->code << " | " << table[i]->name << '\n';
-        else {
+        
             Stack* tmp = table[i];
             while (tmp) {
                 cout << "Hash " << i << " | " << tmp->code << " | " << tmp->name << '\n';
                 tmp = tmp->Next;
             }
-        }
+        
     }
 }
 
@@ -227,8 +225,7 @@ int main()
             cout << "Insert code: ";
             cin >> code;
             system("cls");
-            test.delete_target(code);
-            system("pause");
+            test.delete_target(code);            
             system("cls");
             break;
         }
