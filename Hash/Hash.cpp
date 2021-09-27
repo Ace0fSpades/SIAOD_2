@@ -19,7 +19,7 @@ string generate_item()
 }
 
 void generate_file() {
-    ofstream fout("text.bit");
+    ofstream fout("text.bin", ios::binary);
     string line;
     for (int i = 0; i < 100; i++) {
         line = generate_item();
@@ -115,7 +115,7 @@ int Hash_table::hash(string code)
 
 void Hash_table::read_paste()
 {
-    ifstream fin("text.bit");
+    ifstream fin("text.bin", ios::binary);
     int count_lines = 0;
     string line;
     while (!fin.eof()) {
