@@ -1,32 +1,32 @@
-﻿#include <iostream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <ctime>
 
 using namespace std;
 
-string generate_item()
+void generate_file()
 {
-    int length = rand() % 4 + 4; // определяем длину кода специализации
-    string line = "";
-    for (int i = 0; i < length; i++)        
-        line = line + char(rand() % 9 + 48);
-    line = line + " ";    
-    length = rand() % 10 + 5; // определяем длину названия вуза
-    for (int i = 0; i < length; i++)        
-        line = line + char(rand() % 25 + 65);            
-    return(line);
+    int length = 7; // определяем длину кода специализации
+    char line[16];
+    FILE* fout = fopen("text.bin", "wb"); // создаем файл для записи в бинарном виде
+
+    for (int j = 0; j < 100; j++) {
+        for (int i = 0; i < length; i++)
+            line[i] = char(rand() % 9 + 48);
+        line[7] = ' ';
+        length = 15; // определяем длину названия вуза
+        for (int i = 8; i < length; i++)
+            line[i] = char(rand() % 25 + 65);
+        if (j == 99) line[15] = '\0';
+        else line[15] = '\n';
+        fwrite(line, 16, 1, fout);        
+    }
+    fclose(fout);
 }
 
-void generate_file() {
-    ofstream fout("text.bin", ios::binary);
-    string line;
-    for (int i = 0; i < 100; i++) {
-        line = generate_item();
-        fout << (i == 99 ? line : line + '\n');
-    }
-    fout.close();
-}
 
 struct Stack {
     string code;
@@ -96,6 +96,7 @@ public:
     void read_paste();    
     void delete_target(string code);
     void find(string code);
+    void insert_target(string code, string name);
     void table_out();
 
 };
@@ -110,7 +111,7 @@ int Hash_table::hash(string code)
         result += int(code[i]);
         i++;
     }    
-    return (result % 100);
+    return ((result % 256)%100);
 }
 
 void Hash_table::read_paste()
@@ -153,7 +154,7 @@ void Hash_table::delete_target(string code) {
     int index = hash(code);
     Stack* tmp_1 = table[index];
     Stack* tmp_2 = table[index]->Next;
-    if (tmp_1->Head->code == code) {
+    if (tmp_1 && tmp_1->Head->code == code) {
         tmp_1 = tmp_2;
         while (tmp_2) {
             
@@ -164,24 +165,38 @@ void Hash_table::delete_target(string code) {
         table[index] = tmp_1;
         return;
     }
-    while (tmp_2->code != code) {
+    while (tmp_2 && tmp_2->code != code) {
         tmp_2 = tmp_2->Next;
         tmp_1 = tmp_1->Next;
-    } 
+    }
+    if (tmp_1 == NULL || tmp_2 == NULL) {
+        cout << "Hash not found.\n";
+        return;
+    }
     tmp_1->Next = tmp_2->Next;
 
     delete tmp_2;
     
 }
 
-void Hash_table::find(string code)
-{
+void Hash_table::insert_target(string code, string name) {
     int index = hash(code);
     Stack* tmp = table[index];
-    while (tmp->code != code) {
-        tmp = tmp->Next;
-    }
-    cout << "Hash: " << index << " | " << tmp->code << " | " << tmp->name << '\n';
+    tmp->add_next(code, name);
+
+}
+
+void Hash_table::find(string code)
+{
+    int index = hash(code);    
+    Stack* tmp = table[index];    
+   while (tmp != NULL && tmp->code != code) {
+            tmp = tmp->Next;
+   } 
+   if (tmp)
+       cout << "Hash: " << index << " | " << tmp->code << " | " << tmp->name << '\n';
+   else cout << "Hash not found.\n";   
+    
 
 }
 
@@ -191,7 +206,8 @@ void Hash_table::table_out()
         
             Stack* tmp = table[i];
             while (tmp) {
-                cout << "Hash " << i << " | " << tmp->code << " | " << tmp->name << '\n';
+                if(tmp->code != "")
+                cout << "Hash " << i << " | " << tmp->code << " | " << tmp->name << '\n';                
                 tmp = tmp->Next;
             }
         
@@ -202,19 +218,19 @@ void Hash_table::table_out()
 int main()
 {
     generate_file();
+    
     Hash_table test;
     test.read_paste();
     int key;
     do {
-        cout << "Choose operation:\n[1] Show table\n[2] Search subject by code\n[3] Delete subject by code\n[0] Exit\n>>> ";
+        cout << "Choose operation:\n[1] Show table\n[2] Search subject by code\n[3] Delete subject by code\n[4] Insert subject by code&name\n[0] Exit\n>>> ";
         cin >> key;        
         switch (key) {
         case 1: test.table_out(); break;
         case 2: {
             string code;
             cout << "Insert code: ";
-            cin >> code;
-            system("cls");
+            cin >> code;            
             test.find(code);
             system("pause");
             system("cls");
@@ -223,16 +239,28 @@ int main()
         case 3: {
             string code;
             cout << "Insert code: ";
-            cin >> code;
+            cin >> code;            
+            test.delete_target(code);
+            system("pause");
             system("cls");
-            test.delete_target(code);            
+            break;
+        }
+        case 4: {
+            string code, name;
+            cout << "Insert code: ";
+            cin >> code;            
+            cout << "Insert name: ";
+            cin >> name;            
+            test.insert_target(code, name); 
             system("cls");
             break;
         }
         }
     } while (key);
+        
     
     return 0;
+    
 }
 
 
