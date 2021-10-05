@@ -9,19 +9,18 @@ using namespace std;
 
 void generate_file(int count = 100)
 {
-    int length = 7; // определяем длину кода специализации
+    int length = 8; // определяем длину кода специализации
     char line[16];
     FILE* fout = fopen("text.bin", "wb"); // создаем файл для записи в бинарном виде
 
     for (int j = 0; j < count; j++) {
         for (int i = 0; i < length; i++)
             line[i] = char(rand() % 9 + 48);
-        line[7] = ' ';
-        length = 15; // определяем длину названия вуза
+        
+        length = 16; // определяем длину названия вуза
         for (int i = 8; i < length; i++)
             line[i] = char(rand() % 25 + 65);
-        if (j == count-1) line[15] = '\0';
-        else line[15] = '\n';
+        
         fwrite(line, 16, 1, fout);        
     }
     fclose(fout);
@@ -107,24 +106,24 @@ void Hash_table::read_paste()
 {
     ifstream fin("text.bin", ios::binary);
     int count_lines = 0;
-    string line;
-    while (!fin.eof()) {
-        getline(fin, line);
-        count_lines++;
+    char line[16] = "";
+    if (fin) { // получаем длину бинарного файла
+        fin.seekg(0, fin.end);
+        count_lines = fin.tellg();
+        fin.seekg(0, fin.beg);
     }
-    fin.clear(); // установка поинтера в начало файла
-    fin.seekg(0);
-    for (int i = 0; i < count_lines; i++) {
-        getline(fin, line); // формат код_название
+    
+    for (int i = 0; i < count_lines/16; i++) {
+        fin.read(line,16); // формат код_название
         int j = 0;
         string tmp_code = "";
         string tmp_name = "";
-        while (line[j]!=' ') {
+        while (j!=8) {
             tmp_code = tmp_code + line[j];
             j++;
         }
-        j++;
-        while (line[j]) {
+        
+        while (j!=16) {
             tmp_name += line[j];
             j++;
         }
@@ -209,10 +208,12 @@ void Hash_table::table_out()
 
 int main()
 {
-    generate_file(1000);
+    
+    generate_file(10);
     
     Hash_table test;
     test.read_paste();
+    
     int key;
     do {
         cout << "Choose operation:\n[1] Show table\n[2] Search subject by code\n[3] Delete subject by code\n[4] Insert subject by code&name\n[0] Exit\n>>> ";
@@ -250,10 +251,6 @@ int main()
         }
         }
     } while (key);
-        
     
-    return 0;
-    
+    return 0;    
 }
-
-
