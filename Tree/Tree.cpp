@@ -2,18 +2,78 @@
 
 using namespace std;
 
-int main()
+struct node{
+    char Key;
+    int Count;
+    node* Left;
+    node* Right;
+};
+
+class Tree
 {
-    cout << "Hello World!\n";
+private:
+    node* root; 
+public:
+    Tree() { root = NULL; }
+    node** get_root() { return &root; }
+    void build_tree(int, node**);
+    void print_tree(node**, int);
+    int level_elem(int, node**);
+    node* search(char);
+};
+
+node* Tree::search(char a) {
+    node* tmp = this->root;
+
+    if (tmp == NULL) return NULL;
+    if (tmp->Key == a) return tmp;
+
+
 }
 
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
+int Tree::level_elem(int n, node** p) {
+    return 0;
+}
 
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
+void Tree::build_tree(int n, node** p)
+{
+    node* now;
+    char x;
+    int nl, nr;
+
+    now = *p;
+    if (n == 0) *p = NULL;
+    else
+    {
+        nl = n / 2; // кол-во левых ветвей
+        nr = n - nl - 1; // кол-во правых ветвей
+        cin >> x;
+        now = new(node);
+        (*now).Key = x;
+        build_tree(nl, &((*now).Left));
+        build_tree(nr, &((*now).Right));
+        *p = now;
+    }
+}
+
+void Tree::print_tree(node** w, int l){
+    if (*w != NULL)
+    {
+        print_tree(&((**w).Right), l + 1);
+        for (int i = 1; i <= l; i++) cout << "   ";
+        cout << (**w).Key << endl;
+        print_tree(&((**w).Left), l + 1);
+    }
+}
+int main()
+{
+    setlocale(LC_ALL, "rus");
+    Tree A;
+    int n;
+
+    cout << "Введите количество вершин -...\n"; cin >> n;
+    cout << "Вводите ключи...\n";
+    A.build_tree(n, A.get_root()); A.print_tree(A.get_root(), 0);
+
+    return 0;
+}
