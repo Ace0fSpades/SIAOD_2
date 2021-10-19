@@ -1,6 +1,6 @@
 ﻿#include <iostream>
-#include <queue>
 #include <map>
+#include <queue>
 #include <vector>
 
 using namespace std;
@@ -14,9 +14,7 @@ struct node{
 class Tree
 {
 private:
-    node* root;
-    
-
+    node* root; 
 public:
     Tree() { root = NULL; }
     node** get_root() { return &root; }
@@ -27,7 +25,7 @@ public:
     int count_numbers(node**);
     void getVerticalOrder(node**, int, map<int,vector<char>>&m);
     void printVerticalOrder(node**);
-    
+    void print_vertical(node**);
 };
 
 int Tree::count_numbers(node** p) {
@@ -37,24 +35,21 @@ int Tree::count_numbers(node** p) {
     if (tmp->Key >= '0' && tmp->Key <= '9') {
         return 1 + count_numbers(&(tmp)->Left) + count_numbers(&(tmp)->Right);
     }    
-    
 }
 
 void Tree::search(char a, node** p, int level = 0) {    
     node* tmp = *p;    
     if (tmp->Key == a) {
-        cout << level << endl;
+        cout << "Уровень элемента: " << level << endl;
         return;
     }    
     if (tmp->Left) {
         search(a, &tmp->Left, ++level);
         --level;
-
     }
     if (tmp->Right) {
         search(a, &tmp->Right, ++level);
-    }
-    
+    }    
 }
 
 
@@ -111,6 +106,40 @@ void Tree::printVerticalOrder(node** p) {
     }
 }
 
+void Tree::print_vertical(node** p) {
+    node* cur = *p;
+    int rowelems = 1, currentelems = 0, level = 0;
+    queue<node*> q;
+    q.push(cur);    
+    while (!q.empty()) {
+        node* top = q.front();
+        if (top) cout << top->Key;
+        else cout << " ";
+        currentelems++;
+        if (currentelems == rowelems) {
+            cout << endl;
+            rowelems *= 2;
+            currentelems = 0;
+            level++;
+        }
+        else
+           // for (int i = 0; i < level; i++) {
+                cout << " ";
+           // }
+        
+        if (top) {
+            if (top->Left) q.push(top->Left);
+            else q.push(NULL);
+        }
+        if (top) {
+            if (top->Right) q.push(top->Right);
+            else q.push(NULL);
+        }
+        q.pop();
+    }
+
+}
+
 int main()
 {
     setlocale(LC_ALL, "rus");
@@ -120,7 +149,7 @@ int main()
     char b;
     
     do {
-        cout << "Выберите команду[0-5]:\n[1] Построить дерево\n[2] Вывести дерево, повернув на 90*\n[3] Определить уровень элемента\n[4] Определить кол-во цифр в левом поддереве\n[5] Вывести элементы вертикально\n[0] Выход\n";
+        cout << "Выберите команду[0-5]:\n[1] Построить дерево\n[2] Вывести дерево, повернув на 90*\n[3] Определить уровень элемента\n[4] Определить кол-во цифр в левом поддереве\n[5] Вывести элементы вертикально\n[0] Выход\n>>> ";
         cin >> key;
         switch (key) {
         case 1: {
@@ -153,7 +182,10 @@ int main()
         }
         case 5: {
             system("cls");
-            A.printVerticalOrder(A.get_root());
+            A.print_tree(A.get_root());
+            cout << endl;
+            A.print_vertical(A.get_root());
+            cout << endl;
             break;
         }
         }
