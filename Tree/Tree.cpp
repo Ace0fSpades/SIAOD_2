@@ -1,7 +1,5 @@
 ﻿#include <iostream>
-#include <map>
 #include <queue>
-#include <vector>
 
 using namespace std;
 
@@ -22,9 +20,7 @@ public:
     void build_tree(int, node**);
     void print_tree(node**, int);
     void search(char, node**, int);
-    int count_numbers(node**);
-    void getVerticalOrder(node**, int, map<int,vector<char>>&m);
-    void printVerticalOrder(node**);
+    int count_numbers(node**);    
     void print_vertical(node**);
 };
 
@@ -84,28 +80,6 @@ void Tree::print_tree(node** w, int l = 0){
     }
 }
 
-void Tree::getVerticalOrder(node** p, int hd, map<int, vector<char>>& m) {
-    node* tmp = *p;
-    if (tmp == NULL) return;
-    m[hd].push_back(tmp->Key);
-    getVerticalOrder(&(tmp)->Left, hd - 1, m);
-    getVerticalOrder(&(tmp)->Right, hd + 1, m);
-}
-
-void Tree::printVerticalOrder(node** p) {
-    map<int, vector<char>>m;
-    int hd = 0;
-    getVerticalOrder(&(*p), hd, m);
-    map<int, vector<char>> ::iterator it;
-    for (it = m.begin(); it != m.end(); it++) {
-        for (int i = 0; i < it->second.size(); i++) {
-            cout << it->second[i] << " ";
-
-        }
-        cout << endl;
-    }
-}
-
 void Tree::print_vertical(node** p) {
     node* cur = *p;
     int rowelems = 1, currentelems = 0, level = 0;
@@ -122,10 +96,7 @@ void Tree::print_vertical(node** p) {
             currentelems = 0;
             level++;
         }
-        else
-           // for (int i = 0; i < level; i++) {
-                cout << " ";
-           // }
+        else cout << " ";           
         
         if (top) {
             if (top->Left) q.push(top->Left);
