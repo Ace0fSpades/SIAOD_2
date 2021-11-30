@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include <queue>
-#include <stack>
+
 
 using namespace std;
 
@@ -31,11 +31,10 @@ struct Edge {
 	bool connected_graph();
 	void short_distance(int beg, int end);
 	
-	// dekstra
-	// connected
 };
 
 void Edge::add_node(int beg, int end) {
+	
 	if (beg > count && (end <= count || beg == end)) {  // добавление нового узла
 		bool** tmp = new bool* [beg];
 		for (int i = 0; i < beg; i++) {
@@ -47,7 +46,11 @@ void Edge::add_node(int beg, int end) {
 		for (int i = 0; i < count; i++)
 			for (int j = 0; j < count; j++) tmp[i][j] = arr_edges[i][j];
 		
-		if (beg == end) tmp[beg-1][beg-1] = 1; // если узел бессвязный
+		if (end != 0 && tmp[end - 1][end - 1] == 1) {
+			cout << "Ошибка: Невозможно привязать к бессвязному узлу.\n";
+			
+		}
+		else if (beg == end) tmp[beg-1][beg-1] = 1; // если узел бессвязный
 		else {
 			tmp[beg-1][end-1] = 1;
 			tmp[end-1][beg-1] = 1;
@@ -59,8 +62,24 @@ void Edge::add_node(int beg, int end) {
 		
 	}
 	else if (beg <= count && end <= count) { // добавление пути к существующему узлу
-		{arr_edges[beg - 1][end - 1] = 1;
-		arr_edges[end - 1][beg - 1] = 1;		
+		{
+			if (arr_edges[end - 1][end - 1] == 1) {
+				cout << "Ошибка: Невозможно привязать к бессвязному узлу.\n";
+
+			}
+			else {
+				if (arr_edges[beg - 1][beg - 1] == 1)
+				{
+					arr_edges[beg - 1][beg - 1] = 0;
+					arr_edges[beg - 1][end - 1] = 1;
+					arr_edges[end - 1][beg - 1] = 1;
+				}
+				else 
+				{					
+					arr_edges[beg - 1][end - 1] = 1;
+					arr_edges[end - 1][beg - 1] = 1;
+				}
+			}
 		}
 
 	}
@@ -97,7 +116,7 @@ void Edge::print() {
 	for (int i = 0; i < count; i++)
 		if (marks[i] == 0 && arr_edges[i][i] == 1) cout << i + 1 << endl;
 
-	cout << "Test:\n";
+	cout << "Таблица узлов:\n";
 	for (int i = 0; i < count; i++) {
 		for (int j = 0; j < count; j++)
 			if (arr_edges[i][j] == false) cout << 0 << ' ';
@@ -144,6 +163,7 @@ void Edge::short_distance(int beg, int end) {
 		cout << "Кратчайший путь: " << distance[end - 1] << endl;		
 		
 		vector<int> path;
+		
 		if (arr[end - 1] == -1) cout << "Нет пути\n";
 		else {
 			for (int u = end - 1; u != -1; u = arr[u]) path.push_back(u);
@@ -153,18 +173,8 @@ void Edge::short_distance(int beg, int end) {
 				cout << path[i]+1;
 			}
 			cout << endl;
-		}
-
+		}		
 		
-		/*for (int i = size(Q); i > 0; i--)
-			{
-			if (Q.front() > 0) {
-				cout << " --> " << Q.front() + 1;
-				Q.pop();
-			}
-			else Q.pop();
-		}
-		cout << " --> " << end << endl; */
 	}
 	
 }
@@ -176,7 +186,7 @@ int main() {
 	
 	int key;
 	do {
-		cout << "Выберите опцию:\n[1] Вывести граф\n[2] Добавить узел/связь\n[3] Определить связанный ли граф\n[4] Вывести кратчайший путь от одной вершины к другой\n[0] Выход\n>> ";
+		cout << "Выберите опцию:\n[1] Вывести граф\n[2] Добавить узел/связь\n[3] Определить связный ли граф\n[4] Вывести кратчайший путь от одной вершины к другой\n[0] Выход\n>> ";
 		cin >> key;
 		switch (key) {
 		case 1: {
