@@ -1,10 +1,10 @@
 ﻿#include <iostream>
 #include <string>
-#include <string_view>
+#include <vector>
+#include <queue>
+#include <unordered_map>
 
 using namespace std;
-
-
 
 void RLE(string s) {
     int length = s.length();
@@ -93,190 +93,478 @@ void RLE_text_divide(string s, int new_length) {
 
 }
 
+void print_result(int a, int l, char k) {
+    cout << "<" << a << ", " << l << ", " << k << "> ";
+}
+
+void LZ77(string text) {
+    
+    
+    char alphabet[21] = "";
+    for (int i = 0; i < 21; i++) {        
+        alphabet[i] = '-';
+    }
+    int current_pos = 4;   
+
+    char buffer[4] = "";
+    for (int i = 0; i < 4; i++) {
+        buffer[i] = text[i];       
+    }
+    
+    int length = 0;
+    int address = 0;
+
+    int a_pos = 0;
+    int a_filled = 0;
+
+    while (buffer[0] != '\0') {
+
+            int* tmp = new int[a_filled];
+            while (alphabet[a_pos] != buffer[0]) {
+                if (alphabet[a_pos] == '-') break;
+                a_pos++;
+            }
+            if (alphabet[a_pos] == '-') {
+                alphabet[a_pos] = buffer[0];
+                for (int j = 0; j < 3; j++) {
+                    buffer[j] = buffer[j + 1];
+                }
+                buffer[3] = text[current_pos];
+                current_pos++;
+                a_filled++;
+                print_result(0, 0, buffer[0]);
+                a_pos = 0;                
+            }
+            else {
+                for (int count = a_pos; count < a_filled; count++) {
+                    for (int i = 0; i < 4; i++) {
+                        if (alphabet[count + i] == buffer[i]) {
+                            length++;
+                            if (length == 4) {
+                                tmp[count] = length;
+                                length = 0;
+                                break;
+                            }                            
+                        }
+                        else {
+                            tmp[count] = length;
+                            length = 0;
+                            break;                           
+                        }
+                    }
+
+                }
+
+                int max = tmp[a_pos];
+                address = a_pos;
+                for (int count = a_pos + 1; count < a_filled; count++) {
+                    if (tmp[count] > max) {
+                        max = tmp[count];
+                        address = count;
+                    }
+                }
+                int is_char = 0;
+                for (int l = 0; l < 4; l++) if (buffer[is_char] != '\0') is_char++;
+                address = current_pos - is_char - address;
+                length = max;
+
+                print_result(address, length, text[current_pos-is_char+length]);
+                
+                if (length < 4) {
+                    length++;
+
+                    for (int j = 0; j < length; j++) {
+                        if (buffer[j] == '\0') break;
+                        alphabet[a_filled + j] = buffer[j];
+                    }
+                    a_filled += length;
+
+                    // alphabet[a_filled] = text[current_pos-4+length];
+                    // a_filled++;
+                    refresh:
+                    int k = 4 - length;
+                    if (k != 0)
+                        for (int j = 0; j < (4 - length); j++) {
+                            buffer[j] = buffer[4 - k + j];
+                        }
+                    while (length) {
+                        buffer[k] = text[current_pos];
+                        if (current_pos == 21 || buffer[0] == '\0') {
+                            for (int j = 0; j < (4 - k); j++) buffer[k+j] = '\0';
+                            break;
+                        }
+                        current_pos++;
+                        k++;
+                        length--;
+                    }
+
+                    length = 0;
+                    address = 0;
+                    a_pos = 0;
+                }
+                else if (length == 4) {
+                    for (int j = 0; j < length; j++) {
+                        alphabet[a_filled + j] = buffer[j];
+                    }
+                    a_filled += length;
+                    alphabet[a_filled] = text[current_pos-4+length];
+                    a_filled++;
+                    current_pos++;
+                    goto refresh;
+                }
+            }
+
+        }
+
+}
+
+
+
+
 struct Node {
-    int offset;
-    int length;
-    char next;
+    int index;
+    string data;
+    Node* next;
 };
 
-string LZ77(string input)
+void st_Node(Node* head, int index, string data) {
+    head->index = index;
+    head->data = data;
+    head->next = NULL;
+}
+
+void insert_Node(Node* head, int index, string data) {
+    Node* new_Node = new Node;
+    new_Node->index = index;
+    new_Node->data = data;
+    new_Node->next = NULL;
+
+    Node* curr = head;
+    while (curr != NULL)
+    {
+        if (curr->next == NULL)
+        {
+            curr->next = new_Node;
+            return;
+        }
+        curr = curr->next;
+    }
+}
+
+Node* search_Node(Node* head, string data)
 {
-	// Initialized variables
-	string result;
-	int length, char_info_selc = 0;
-	
-	
-		length = (int)input.length();	// Calculate input string length
-		// Check input line length is less than 3
-		
+    Node* curr = head;
+    while (curr != NULL)
+    {
+        if (data.compare(curr->data) == 0)
+            return curr;
+        else
+            curr = curr->next;
+    }
+    return NULL;
+}
 
-		// Declare an arry for final result called 'result_ary'
-		int** result_ary = new int* [3];
-		for (int i = 0; i < length; ++i)
-			result_ary[i] = new int[length];
-		// Set result_ary elements value to 0 to prevent previous values
-		for (int i = 0; i < 3; i++)
-		{
-			for (int j = 0; j < length; j++)
-				result_ary[i][j] = 0;
-		}
+Node* search_Node(Node* head, int index)
+{
+    Node* curr = head;
+    while (curr != NULL)
+    {
+        if (index == curr->index)
+            return curr;
+        else
+            curr = curr->next;
+    }
+    return NULL;
+}
 
-		// Declare an arry to store every char info in input string called 'char_info'
-		int** char_info = new int* [3];
-		for (int i = 0; i < length; ++i)
-			char_info[i] = new int[length];
-		// Set char_info elements value to 0 to prevent previous values
-		for (int i = 0; i < 3; i++)
-		{
-			for (int j = 0; j < length; j++)
-				char_info[i][j] = 0;
-		}
 
-		// Set first char info to (0,0,'<first char>')
-		result_ary[0][0] = 0;
-		result_ary[1][0] = 0;
-		result_ary[2][0] = input[0];
 
-		// Set result counter
-		int result_count = 1;
 
-		// A loop to perform some operations in every char in input string
-		for (int i = 1; i < length; i++)
-		{
-			// A loop to check input char in position i is equal to any of
-			// previous char in input and save this info in char_info array
-			for (int j = 0; j < i; j++)
-			{
-				// Check position of previous view of element i
-				if (input[i] == input[j])
-				{
-					// Set position pointer
-					char_info[0][char_info_selc] = i - j;
+void LZ78(string input)
+{   
+        Node* dictionary = new Node;
+        string word, result;
+        int length, last_seen, index = 1;
 
-					// Increase char info array selector by 1
-					char_info_selc++;
-				}
+        length = (int)input.length();
+        word = input[0];
+        st_Node(dictionary, 1, word);
+        result += "0," + word;
 
-			}
+        for (int i = 1; i < length; i++)
+        {
+            string data;
+            data = input[i];
 
-			// A loop to check length for every char position
-			for (int j = 0; j < length; j++)
-			{
-				// Check current char info array position is not equal to 0
-				if (char_info[0][j] != 0)
-				{
-					// Set start point
-					int start = i - char_info[0][j];
+        re_check:
+            Node* search = search_Node(dictionary, data);
 
-					// Set count to calculate length for this char position
-					int count = 1;
+            if (search)
+            {
+                i++;
+                data += input[i];
+                last_seen = search->index;
+                goto re_check;
+            }
+            else
+            {
+                char zero;
+                if (input[i] == ' ')
+                    zero = '0';
+                else
+                    zero = input[i];
 
-					// A loop to check length for this char position
-					for (int k = 0; k < length; k++)
-					{
-						// Check next element of start by next element of input
-						if (input[start + count] == input[i + count])
-							count++;	// Increase count by 1
-						else
-						{
-							char_info[1][j] = count;	// Store count value in length 
+                if ((int)data.length() < 2)
+                    result += " " + to_string(0) + "," + zero;
+                else
+                    result += " " + to_string(last_seen) + "," + zero;
 
-							// Check if this input char is the last char
-							if (i != (length - 1))
-							{
-								// Store next char to char info
-								// Check this postion is equal to length
-								if (char_info[0][j] + count == length)
-									char_info[2][j] = 0;	// Set 0 in next char field
-								else
-									char_info[2][j] = input[char_info[0][j] + count];	// Set the next char
-							}
-							else
-								char_info[2][j] = NULL;		// Set NULL in next char field
+                index++;
+                if (i != length)
+                    insert_Node(dictionary, index, data);
+            }
+        }
 
-							break;	// Stop loop
-						}
-					}
-				}
-			}
+        cout << result;
+    
+    
+}
 
-			// Set large selector
-			int large = 0;	// large selector equal 0
+// Тише, мыши, кот на крыше, 
+// А котята ещё выше.Кот пошёл за молоком,
+// А котята кувырком.
+// тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.
 
-			// Loop to check the largest length for every char info
-			for (int k = 1; k < length; k++)
-			{
-				// Check largest
-				if (char_info[1][large] == char_info[1][k])
-					large = k;	// Set largest
-				else if (char_info[1][large] < char_info[1][k])
-					large = k;	// Set largest
-			}
+char c_arr[22] = " октеаш,мылиряв.знпщу";
+int p_arr[21] = { 1765,1059,941,824,706,706,588,471,471,471,235,235,235,235,235,235,118,118,118,118,118};
+vector<string> fano_result;
 
-			// Check largest length is equal to 0
-			if (char_info[1][large] == 0)
-				char_info[2][large] = input[i];		// Set char info
-			else
-			{
-				i += char_info[1][large];		// increase loop counter by length of the largest char info element
-				char_info[2][large] = input[i];		// Set char info
-			}
 
-			// Set final result info
-			result_ary[0][result_count] = char_info[0][large];
-			result_ary[1][result_count] = char_info[1][large];
-			result_ary[2][result_count] = char_info[2][large];
+void Fano(char branch, string s, int start_pos, int end_pos) {
+    double dS;
+    int S, i, m;
+    string c_branch;
+    if (c_arr != " ") c_branch = s + branch;
+    else c_branch = ' ';
 
-			// Increase result counter
-			result_count++;
+    if (start_pos == end_pos) {
+        fano_result.push_back(c_branch);
+        return;
+    }
 
-			// Prepare char info array for next char by set it to 0
-			for (int z = 0; z < 2; z++)
-			{
-				for (int j = 0; j < length; j++)
-					char_info[z][j] = 0;	// Set every element in char info to 0
-			}
+    dS = 0;
+    for (int j = start_pos; j < end_pos; j++) {
+        dS += p_arr[j];
+    }
+    dS /= 2;
 
-			// Prepare char info selector for next char by set it to 0
-			char_info_selc = 0;
-		}
+    S = 0;
+    i = start_pos;
+    m = i;
+    while (S + p_arr[i] < dS && i < end_pos) {
+        S += p_arr[i];
+        i++;
+        m++;
+    }
+    Fano('0', c_branch, start_pos, m);
+    Fano('1', c_branch, m + 1, end_pos);
+}
 
-		// Display final results
-		for (int j = 0; j < length; j++)
-		{
-			if (result_ary[0][j] == 0 && result_ary[1][j] == 0)
-			{
-				if (result_ary[2][j] != NULL || result_ary[2][j] != 0)
-				{
-					char z = result_ary[2][j];
-					result += to_string(result_ary[0][j]) + "," + to_string(result_ary[1][j]) + "," + z + " ";
-				}
-			}
-			else
-			{
-				//char z = result_ary[2][j];
-				result += to_string(result_ary[0][j]) + "," + to_string(result_ary[1][j]) + ",0 ";
-			}
-		}
+void Fano_compression(string s) {
+    for (int i = 0; i < s.length(); i++) {
+        for (int j = 0; j < 21; j++) {
+            if (s[i] == c_arr[j]) cout << fano_result[j] << ' ';
+        }
+    }
+}
 
-		
-		for (int i = 0; i < 3; ++i) {
-			{
-				delete[] result_ary[i];	delete[] char_info[i];
-			}
-		}
-		delete[] result_ary;
-		delete[] char_info;
+// Хаффман
+struct Node_haff
+{
+    char ch;
+    int freq;
+    Node_haff* left, * right;
+};
 
-		return result;
-	}
+// Добавление нового узла
+Node_haff* getNode_haff(char ch, int freq, Node_haff* left, Node_haff* right)
+{
+    Node_haff* node = new Node_haff();
+
+    node->ch = ch;
+    node->freq = freq;
+    node->left = left;
+    node->right = right;
+
+    return node;
+}
+
+// Сравнение
+struct comp
+{
+    bool operator()(Node_haff* l, Node_haff* r)
+    {
+        // Больший приоритет реже встречаемому симв
+        return l->freq > r->freq;
+    }
+};
+
+// кодировка с помощью дерева и таблицы кодов, представленной в виде карты
+void encode(Node_haff* root, string str,
+    unordered_map<char, string>& huffmanCode)
+{
+    if (root == nullptr)
+        return;
+
+    // находим листок (крайний симв)
+    if (!root->left && !root->right) {
+        huffmanCode[root->ch] = str;
+    }
+
+    encode(root->left, str + "0", huffmanCode);
+    encode(root->right, str + "1", huffmanCode);
+}
+
+// traverse the Huffman Tree and decode the encoded string
+//void decode(Node_haff* root, int& index, string str)
+//{
+//    if (root == nullptr) {
+//        return;
+//    }
+//
+//    // found a leaf node
+//    if (!root->left && !root->right)
+//    {
+//        cout << root->ch;
+//        return;
+//    }
+//
+//    index++;
+//
+//    if (str[index] == '0')
+//        decode(root->left, index, str);
+//    else
+//        decode(root->right, index, str);
+//}
+
+// Вывод результата 
+void buildHuffmanTree(string text)
+{
+
+    unordered_map<char, int> freq;
+    for (char ch : text) {
+        freq[ch]++;
+    }
+
+    priority_queue<Node_haff*, vector<Node_haff*>, comp> pq;
+
+    for (auto pair : freq) {
+        pq.push(getNode_haff(pair.first, pair.second, nullptr, nullptr));
+    }
+
+    while (pq.size() != 1)
+    {
+        Node_haff* left = pq.top(); pq.pop();
+        Node_haff* right = pq.top();	pq.pop();
+
+        int sum = left->freq + right->freq;
+        pq.push(getNode_haff('\0', sum, left, right));
+    }
+    Node_haff* root = pq.top();
+
+    unordered_map<char, string> huffmanCode;
+    encode(root, "", huffmanCode);
+
+    cout << "Huffman Codes are :\n";
+    for (auto pair : huffmanCode) {
+        cout << pair.first << " " << pair.second << '\n';
+    }
+    cout << "\nВходная строка:\n" << text << '\n';
+
+    string str = "";
+    for (char ch : text) {
+        str += huffmanCode[ch]+' ';
+    }
+
+    cout << "\nЗакодированное сообщение:\n" << str << '\n';
+
+}
+
+
 
 int main()
 {
-	setlocale(LC_ALL, "rus");
-	RLE("aaaaaaaaafffffffff");
-	//LZ77("110101011001100001001");
-	return 0;
+    setlocale(LC_ALL, "rus");
+
+    int key;
+    do {
+        cout << "[1]RLE\n[2]RLE блоками\n[3]LZ77\n[4]LZ78\n[5]Fano\n[6]Haffman\n[0]Выход\n>>> ";
+        cin >> key;
+        switch (key) {
+        case 1:
+        {
+            system("cls");
+            cout << "Введите строку для RLE: ";
+            string sl;
+            cin >> sl;
+            RLE(sl);
+            break;
+        }
+        case 2:
+        {
+            system("cls");
+            cout << "Введите строку для RLE: ";
+            string sl;
+            cin >> sl;
+            int by;
+            cout << "Введите делитель: ";
+            cin >> by;
+            RLE_text_divide(sl, by);
+            break;
+        }
+        case 3:
+        {
+            system("cls");
+            cout << "Строка для LZ77: 110101011001100001001\n";
+            LZ77("110101011001100001001");
+            cout << endl;
+            break;
+        }
+        case 4:
+        {
+            system("cls");
+            cout << "Строка для LZ78: долделдолдилделдил\n";
+            LZ78("долделдолдилделдил");
+            cout << endl;
+            break;
+        }
+        case 5:
+        {
+            system("cls");
+            cout << "Строка для Фано: тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.\nТаблица кодировки\n";
+            Fano('\0', "", 0, 20);
+                for (int i = 0; i < fano_result.size(); i++) {
+                    cout << c_arr[i] << " = " << fano_result[i] << endl;
+                }
+            Fano_compression("тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.");
+            cout << endl;
+            break;
+        }
+        case 6:
+        {
+            system("cls");
+            cout << "Строка для Хаффмана: Дергачев Андрей Сергеевич\n";
+
+            string text = "Дергачев Андрей Сергеевич";
+            buildHuffmanTree(text);
+            break;
+        }
+        }
+
+
+    } while (key);   
+
+    return 0;
 }
 	
 
