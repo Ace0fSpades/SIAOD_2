@@ -1,7 +1,10 @@
 ﻿#include <iostream>
 #include <string>
+#include <string_view>
 
 using namespace std;
+
+
 
 void RLE(string s) {
     int length = s.length();
@@ -270,7 +273,10 @@ string LZ77(string input)
 
 int main()
 {
-    setlocale(LC_ALL, "rus");
-   // RLE("aaaaaaaaafffffffff");
+	setlocale(LC_ALL, "rus");
+	RLE("aaaaaaaaafffffffff");
+	//LZ77("110101011001100001001");
+	return 0;
+}
 	
 
