@@ -98,14 +98,7 @@ void print_result(int a, int l, char k) {
 }
 
 void LZ77(string text) {
-    // 1101 0101 1001 1000 0100 1  21 - length
-    //      0101  
-    // 1101 ---- ----
-    /* пока символ не совпадет с началом, пропуск словаря
-    * далее ищем совпадение, прибавляя длинну
-    * length = 1
-    * address = 1
-    */
+    
     
     char alphabet[21] = "";
     for (int i = 0; i < 21; i++) {        
@@ -502,19 +495,74 @@ void buildHuffmanTree(string text)
 int main()
 {
     setlocale(LC_ALL, "rus");
-    // RLE("aaaaaaaaafffffffff");
-    cout << "String: долделдолдилделдил" << endl;
-    //LZ77("110101011001100001001");
-    //LZ78("долделдолдилделдил");
-    //Fano('\0', "", 0, 20);
-    /*for (int i = 0; i < fano_result.size(); i++) {
-        cout << c_arr[i] << " = " << fano_result[i] << endl;
-    }
-    Fano_compression("тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.");*/
 
-    string text = "Дергачев Андрей Сергеевич";
+    int key;
+    do {
+        cout << "[1]RLE\n[2]RLE блоками\n[3]LZ77\n[4]LZ78\n[5]Fano\n[6]Haffman\n[0]Выход\n>>> ";
+        cin >> key;
+        switch (key) {
+        case 1:
+        {
+            system("cls");
+            cout << "Введите строку для RLE: ";
+            string sl;
+            cin >> sl;
+            RLE(sl);
+            break;
+        }
+        case 2:
+        {
+            system("cls");
+            cout << "Введите строку для RLE: ";
+            string sl;
+            cin >> sl;
+            int by;
+            cout << "Введите делитель: ";
+            cin >> by;
+            RLE_text_divide(sl, by);
+            break;
+        }
+        case 3:
+        {
+            system("cls");
+            cout << "Строка для LZ77: 110101011001100001001\n";
+            LZ77("110101011001100001001");
+            cout << endl;
+            break;
+        }
+        case 4:
+        {
+            system("cls");
+            cout << "Строка для LZ78: долделдолдилделдил\n";
+            LZ78("долделдолдилделдил");
+            cout << endl;
+            break;
+        }
+        case 5:
+        {
+            system("cls");
+            cout << "Строка для Фано: тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.\nТаблица кодировки\n";
+            Fano('\0', "", 0, 20);
+                for (int i = 0; i < fano_result.size(); i++) {
+                    cout << c_arr[i] << " = " << fano_result[i] << endl;
+                }
+            Fano_compression("тише, мыши, кот на крыше, а котята еще выше. кот пошел за молоком, а котята кувырком.");
+            cout << endl;
+            break;
+        }
+        case 6:
+        {
+            system("cls");
+            cout << "Строка для Хаффмана: Дергачев Андрей Сергеевич\n";
 
-    buildHuffmanTree(text);
+            string text = "Дергачев Андрей Сергеевич";
+            buildHuffmanTree(text);
+            break;
+        }
+        }
+
+
+    } while (key);   
 
     return 0;
 }
